@@ -1,0 +1,303 @@
+{% extends "admin.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="h3 mb-0 text-gray-800"><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</h2>
+        <p class="text-muted small">Welcome back, {{ session['user_id'] }}! Last login: Today at 9:30 AM</p>
+    </div>
+</div>
+
+<!-- Attendance Overview Cards -->
+<div class="row g-4 mb-4">
+    <!-- Present Card -->
+    <div class="col-xl-3 col-md-6">
+        <div class="admin-card stat-card success">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Present Today</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ present_count }}</div>
+                        <div class="mt-2 text-muted small">
+                            <span class="text-success me-2"><i class="fas fa-arrow-up"></i> 3.48%</span>
+                            <span>Since yesterday</span>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-check stat-card-icon text-success"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="progress">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ ((present_count / total_members) * 100)|round(0) }}%;" 
+                        aria-valuenow="{{ ((present_count / total_members) * 100)|round(0) }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Absent Card -->
+    <div class="col-xl-3 col-md-6">
+        <div class="admin-card stat-card danger">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Absent Today</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ absent_count }}</div>
+                        <div class="mt-2 text-muted small">
+                            <span class="text-danger me-2"><i class="fas fa-arrow-down"></i> 1.10%</span>
+                            <span>Since yesterday</span>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-times stat-card-icon text-danger"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <div class="progress">
+                    <div class="progress-bar bg-danger" role="progressbar" style="width: {{ (absent_count / total_members) * 100 }}%;" 
+                        aria-valuenow="{{ (absent_count / total_members) * 100 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Attendance Percentage Card -->
+    <div class="col-xl-3 col-md-6">
+        <div class="admin-card stat-card info">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Attendance Rate</div>
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <div class="h5 mb-0 me-3 font-weight-bold text-gray-800">{{ attendance_percentage }}%</div>
+                            </div>
+                            <div class="col">
+                                <div class="progress progress-sm mr-2">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ attendance_percentage }}%"
+                                        aria-valuenow="{{ attendance_percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-muted small">
+                            <span class="text-info me-2"><i class="fas fa-arrow-up"></i> 0.5%</span>
+                            <span>Since last week</span>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clipboard-check stat-card-icon text-info"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="/admin/manage_attendance" class="text-info small">View Details <i class="fas fa-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Total Members Card -->
+    <div class="col-xl-3 col-md-6">
+        <div class="admin-card stat-card warning">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Total Members</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_members }}</div>
+                        <div class="mt-2 text-muted small">
+                            <span class="text-success me-2"><i class="fas fa-user-plus"></i> 2</span>
+                            <span>New this month</span>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users stat-card-icon text-warning"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="/admin/manage_members" class="text-warning small">Manage <i class="fas fa-arrow-right ms-1"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Attendance Chart -->
+    <div class="col-lg-8">
+        <div class="admin-card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">Attendance Overview</h6>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" 
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="#">Last 7 Days</a></li>
+                        <li><a class="dropdown-item" href="#">Last 30 Days</a></li>
+                        <li><a class="dropdown-item" href="#">This Year</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="attendanceChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Access & Stats -->
+    <div class="col-lg-4">
+        <div class="admin-card mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold"><i class="fas fa-bolt me-2"></i>Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/admin/add_member" class="btn btn-primary">
+                        <i class="fas fa-user-plus me-1"></i>Add Member
+                    </a>
+                    <a href="/admin/manage_attendance" class="btn btn-info">
+                        <i class="fas fa-edit me-1"></i>Edit Attendance
+                    </a>
+                    <a href="#" class="btn btn-success">
+                        <i class="fas fa-download me-1"></i>Export Report
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="admin-card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold"><i class="fas fa-chart-pie me-2"></i>Attendance Stats</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="attendancePieChart" height="260"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity Table with Status Indicators -->
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold"><i class="fas fa-history me-2"></i>Recent Activity</h6>
+        <a href="#" class="btn btn-sm btn-primary">View All</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                        <th>User</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for activity in recent_activity %}
+                    <tr>
+                        <td>{{ activity.time }}</td>
+                        <td>
+                            <div class="status-indicator status-{{ activity.status|default('success') }}"></div>
+                            {{ activity.status|default('Completed') }}
+                        </td>
+                        <td>{{ activity.action }}</td>
+                        <td>{{ activity.details }}</td>
+                        <td>
+                            <img class="rounded-circle me-1" src="https://source.unsplash.com/30x30/?portrait" alt="">
+                            <span class="small">{{ activity.user|default(session['user_id']) }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Attendance Line Chart
+    var ctx = document.getElementById('attendanceChart').getContext('2d');
+    var myLineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            datasets: [{
+                label: "Present",
+                lineTension: 0.3,
+                backgroundColor: "rgba(28, 200, 138, 0.05)",
+                borderColor: "rgba(28, 200, 138, 1)",
+                pointRadius: 3,
+                pointBackgroundColor: "rgba(28, 200, 138, 1)",
+                pointBorderColor: "rgba(28, 200, 138, 1)",
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: "rgba(28, 200, 138, 1)",
+                pointHoverBorderColor: "rgba(28, 200, 138, 1)",
+                pointHitRadius: 10,
+                pointBorderWidth: 2,
+                data: [15, 17, 16, 18, 15, 12, 14],
+            },
+            {
+                label: "Absent",
+                lineTension: 0.3,
+                backgroundColor: "rgba(231, 74, 59, 0.05)",
+                borderColor: "rgba(231, 74, 59, 1)",
+                pointRadius: 3,
+                pointBackgroundColor: "rgba(231, 74, 59, 1)",
+                pointBorderColor: "rgba(231, 74, 59, 1)",
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: "rgba(231, 74, 59, 1)",
+                pointHoverBorderColor: "rgba(231, 74, 59, 1)",
+                pointHitRadius: 10,
+                pointBorderWidth: 2,
+                data: [5, 3, 4, 2, 5, 8, 6],
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    // Attendance Pie Chart
+    var pieCtx = document.getElementById('attendancePieChart').getContext('2d');
+    var myPieChart = new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ["Present", "Absent", "Late"],
+            datasets: [{
+                data: [{{ present_count }}, {{ absent_count }}, {{ present_count }} / 5],
+                backgroundColor: ['#1cc88a', '#e74a3b', '#f6c23e'],
+                hoverBackgroundColor: ['#17a673', '#be3024', '#dfad39'],
+                hoverBorderColor: "rgba(234, 236, 244, 1)",
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                }
+            },
+            cutout: '70%'
+        }
+    });
+});
+</script>
+{% endblock %}
